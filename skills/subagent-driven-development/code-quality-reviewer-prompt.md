@@ -7,7 +7,7 @@
 **仅在规格合规性审查通过后派发。**
 
 ```
-Task tool (booming-code:code-reviewer):
+Task tool (booming-code-reviewer):
   Use template at requesting-code-review/code-reviewer.md
 
   WHAT_WAS_IMPLEMENTED: [来自实现者的报告]

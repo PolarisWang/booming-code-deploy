@@ -13,53 +13,78 @@ This test suite verifies that skills are loaded correctly and Claude follows the
 
 ## Running Tests
 
-### Run all fast tests (recommended):
+### Linux / macOS (Bash)
+
 ```bash
+# Run all fast tests (recommended)
 ./run-skill-tests.sh
-```
 
-### Run integration tests (slow, 10-30 minutes):
-```bash
+# Run integration tests (slow, 10-30 minutes)
 ./run-skill-tests.sh --integration
-```
 
-### Run specific test:
-```bash
+# Run specific test
 ./run-skill-tests.sh --test test-subagent-driven-development.sh
-```
 
-### Run with verbose output:
-```bash
+# Run with verbose output
 ./run-skill-tests.sh --verbose
+
+# Set custom timeout (seconds)
+./run-skill-tests.sh --timeout 1800
 ```
 
-### Set custom timeout:
-```bash
-./run-skill-tests.sh --timeout 1800  # 30 minutes for integration tests
+### Windows (PowerShell)
+
+```powershell
+# Run all fast tests (recommended)
+.\run-skill-tests.ps1
+
+# Run integration tests (slow, 10-30 minutes)
+.\run-skill-tests.ps1 --integration
+
+# Run specific test
+.\run-skill-tests.ps1 --test test-subagent-driven-development.ps1
+
+# Run with verbose output
+.\run-skill-tests.ps1 --verbose
+
+# Set custom timeout (seconds)
+.\run-skill-tests.ps1 --timeout 1800
 ```
+
+> **Note for Windows:** If you see an execution policy error, run:
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+> ```
 
 ## Test Structure
 
-### test-helpers.sh
-Common functions for skills testing:
-- `run_claude "prompt" [timeout]` - Run Claude with prompt
-- `assert_contains output pattern name` - Verify pattern exists
-- `assert_not_contains output pattern name` - Verify pattern absent
-- `assert_count output pattern count name` - Verify exact count
-- `assert_order output pattern_a pattern_b name` - Verify order
-- `create_test_project` - Create temp test directory
-- `create_test_plan project_dir` - Create sample plan file
+### Helper Files
+
+| File | Platform | Description |
+|------|----------|-------------|
+| `test-helpers.sh` | Linux/macOS | Common bash helper functions |
+| `test-helpers.ps1` | Windows | Common PowerShell helper functions |
+
+#### Helper functions:
+- `run_claude` / `Run-Claude` — Run Claude with a prompt
+- `assert_contains` / `Assert-Contains` — Verify pattern exists in output
+- `assert_not_contains` / `Assert-NotContains` — Verify pattern absent
+- `assert_count` / `Assert-Count` — Verify exact count of pattern
+- `assert_order` / `Assert-Order` — Verify pattern A appears before B
+- `create_test_project` / `New-TestProject` — Create temp test directory
+- `create_test_plan` / `New-TestPlan` — Create sample plan file
 
 ### Test Files
 
 Each test file:
-1. Sources `test-helpers.sh`
+1. Sources/dot-sources the helper file
 2. Runs Claude Code with specific prompts
 3. Verifies expected behavior using assertions
-4. Returns 0 on success, non-zero on failure
+4. Returns exit code 0 on success, non-zero on failure
 
 ## Example Test
 
+**Bash (`test-my-skill.sh`):**
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -69,20 +94,30 @@ source "$SCRIPT_DIR/test-helpers.sh"
 
 echo "=== Test: My Skill ==="
 
-# Ask Claude about the skill
 output=$(run_claude "What does the my-skill skill do?" 30)
-
-# Verify response
 assert_contains "$output" "expected behavior" "Skill describes behavior"
 
 echo "=== All tests passed ==="
+```
+
+**PowerShell (`test-my-skill.ps1`):**
+```powershell
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+. "$ScriptDir\test-helpers.ps1"
+
+Write-Host "=== Test: My Skill ==="
+
+$output = Run-Claude "What does the my-skill skill do?" 30
+Assert-Contains $output "expected behavior" "Skill describes behavior"
+
+Write-Host "=== All tests passed ==="
 ```
 
 ## Current Tests
 
 ### Fast Tests (run by default)
 
-#### test-subagent-driven-development.sh
+#### test-subagent-driven-development.sh / .ps1
 Tests skill content and requirements (~2 minutes):
 - Skill loading and accessibility
 - Workflow ordering (spec compliance before code quality)
@@ -94,7 +129,7 @@ Tests skill content and requirements (~2 minutes):
 
 ### Integration Tests (use --integration flag)
 
-#### test-subagent-driven-development-integration.sh
+#### test-subagent-driven-development-integration.sh / .ps1
 Full workflow execution test (~10-30 minutes):
 - Creates real test project with Node.js setup
 - Creates implementation plan with 2 tasks
@@ -117,11 +152,18 @@ Full workflow execution test (~10-30 minutes):
 
 ## Adding New Tests
 
+### Linux/macOS
 1. Create new test file: `test-<skill-name>.sh`
-2. Source test-helpers.sh
+2. Source `test-helpers.sh`
 3. Write tests using `run_claude` and assertions
 4. Add to test list in `run-skill-tests.sh`
 5. Make executable: `chmod +x test-<skill-name>.sh`
+
+### Windows
+1. Create new test file: `test-<skill-name>.ps1`
+2. Dot-source `test-helpers.ps1`: `. "$ScriptDir\test-helpers.ps1"`
+3. Write tests using `Run-Claude` and `Assert-*` functions
+4. Add to test list in `run-skill-tests.ps1`
 
 ## Timeout Considerations
 
@@ -141,11 +183,15 @@ Without verbose, only failures show output.
 
 ## CI/CD Integration
 
-To run in CI:
+**Linux/macOS:**
 ```bash
-# Run with explicit timeout for CI environments
 ./run-skill-tests.sh --timeout 900
+# Exit code 0 = success, non-zero = failure
+```
 
+**Windows:**
+```powershell
+.\run-skill-tests.ps1 --timeout 900
 # Exit code 0 = success, non-zero = failure
 ```
 

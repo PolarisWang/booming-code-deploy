@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -E \"\\\\.\\(hpp|cpp|h\\)$\")"
+      "Bash(grep -E \"\\\\.\\(hpp|cpp|h\\)$\")",
+      "Bash(powershell -NonInteractive -Command \":*)",
+      "Bash(powershell -NonInteractive -File run-skill-tests.ps1 --help)"
     ]
   }
 }

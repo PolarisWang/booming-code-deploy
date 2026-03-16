@@ -3,7 +3,15 @@
     "allow": [
       "Bash(grep -E \"\\\\.\\(hpp|cpp|h\\)$\")",
       "Bash(powershell -NonInteractive -Command \":*)",
-      "Bash(powershell -NonInteractive -File run-skill-tests.ps1 --help)"
+      "Bash(powershell -NonInteractive -File run-skill-tests.ps1 --help)",
+      "Read(//c/Users/haochuan.wang/.claude/**)",
+      "Bash(npx skills:*)",
+      "Bash(python -c \":*)",
+      "Bash(cmd.exe /c \"start https://boomingtech.feishu.cn/docx/UgLldadeEoj9pcxHYuecJ9ACn5e\")",
+      "Bash(python feishu_write.py --title \"Mars 物理模块总结 v2\" --share tenant \"e:/agent/tracy-cli/docs/physics-module-summary.md\")",
+      "Bash(cmd.exe /c \"start https://boomingtech.feishu.cn/docx/OX3rd6A4poiw5Yx38P8c1zBvnVb\")",
+      "Bash(python feishu_auth.py --help)",
+      "Bash(python feishu_auth.py)"
     ]
   }
 }

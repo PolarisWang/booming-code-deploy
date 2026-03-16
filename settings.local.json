@@ -3,7 +3,43 @@
     "allow": [
       "Bash(echo:*)",
       "Bash(find:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(git add:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(python -m pytest tests/test_parser.py -v)",
+      "Bash(pip install:*)",
+      "Bash(python -m pytest tests/test_auth.py -v)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest tests/test_client.py -v)",
+      "Bash(python -m pytest tests/test_converter.py -v)",
+      "Bash(python -m pytest tests/test_converter.py -v --tb=short)",
+      "Read(//e:/agent/tracy-cli/.claude/skills/**)",
+      "Bash(python -m pytest tests/test_searcher.py -v)",
+      "Bash(python -m pytest tests/test_cli.py -v)",
+      "Bash(python feishu_fetch.py \"https://boomingtech.feishu.cn/wiki/PoDhw0d51ih2lAkPWBKc0wpznjh\" --json)",
+      "Bash(python feishu_fetch.py \"https://boomingtech.feishu.cn/wiki/PoDhw0d51ih2lAkPWBKc0wpznjh\")",
+      "Bash(python -c \":*)",
+      "Bash(python feishu_fetch.py \"https://boomingtech.feishu.cn/wiki/PoDhw0d51ih2lAkPWBKc0wpznjh\" --export-md /tmp/feishu_main.md)",
+      "Bash(python feishu_fetch.py \"https://boomingtech.feishu.cn/wiki/PoDhw0d51ih2lAkPWBKc0wpznjh\" --export-md \"C:/Users/haochuan.wang/AppData/Local/Temp/feishu_main.md\")",
+      "Read(//c/Users/haochuan.wang/AppData/Local/Temp/**)",
+      "Bash(python extract_all.py)",
+      "Bash(python -m pytest tests/test_writer.py -v)",
+      "Bash(python -c \"from feishu.writer import _DOC_DOMAIN; print\\(f''Current domain: {_DOC_DOMAIN}''\\)\")",
+      "Bash(FEISHU_DOMAIN=other-tenant.feishu.cn python -c \"from feishu.writer import _DOC_DOMAIN; print\\(f''Custom domain: {_DOC_DOMAIN}''\\)\")",
+      "Bash(python -m pytest tests/test_write_cli.py -v)",
+      "Bash(python -m pytest tests/test_write_cli.py -v --tb=short)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python feishu_write.py --title \"Mars 物理模块总结\" \"e:/agent/tracy-cli/docs/physics-module-summary.md\")",
+      "WebFetch(domain:open.feishu.cn)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebSearch"
+    ],
+    "additionalDirectories": [
+      "E:\\agent\\tracy-cli\\.claude\\skills\\feishu-docs",
+      "\\e:\\agent\\tracy-cli\\.claude\\skills\\feishu-docs\\tests",
+      "e:\\agent\\tracy-cli\\.claude\\skills\\feishu-docs"
     ]
   }
 }

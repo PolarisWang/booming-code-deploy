@@ -1,3 +1,55 @@
+## v1.3.0（2026-03-16）
+
+### feishu-docs skill — 飞书文档完整读写能力
+
+新增 `skills/feishu-docs/`，基于飞书开放 API 实现飞书文档的读取、搜索与写入。
+
+**核心模块（`feishu/`）：**
+
+| 模块 | 职责 |
+|------|------|
+| `parser.py` | 飞书分享 URL 解析（docx / wiki / larkoffice） |
+| `auth.py` | tenant_access_token 获取与内存缓存（提前 5 分钟刷新） |
+| `client.py` | 飞书 API 调用封装，含分页和 wiki 两步解析 |
+| `converter.py` | 飞书 blocks → Markdown 转换（读取方向） |
+| `searcher.py` | 文档关键词搜索，返回含上下文的匹配段落 |
+| `writer.py` | Markdown → 飞书 blocks 转换（写入方向），参考 feishu-markdown 库 block type 编号体系 |
+
+**CLI 工具：**
+
+- `feishu_fetch.py` — 读取文档：`--export-md`、`--search`、`--json`
+- `feishu_write.py` — 写入文档：`--share`（tenant/anyone/closed）、`--folder`
+- `feishu_auth.py` — OAuth 浏览器授权，获取个人空间 folder_token
+
+**关键技术细节：**
+
+- 飞书写入 API 的 block_type 编号与读取 API **不同**（来自 feishu-markdown 库实证）：
+  - Bullet = 12（读取侧为 9），Ordered = 13（读取侧为 10）
+  - Code = 14（读取侧为 11），Quote = 15（读取侧为 12）
+  - Paragraph 字段名为 `text`（非 `paragraph`），Divider 需 `divider: {}` 字段
+- 行内样式解析：`**bold**`、`*italic*`、`~~strike~~`、`` `code` ``、`[link](url)`
+- 上传到个人空间：通过 OAuth 获取 user_access_token，每次上传自动弹出浏览器授权，不持久化 token
+- 文档权限设置：`drive/v1/permissions` API
+
+**环境变量：**
+
+```
+FEISHU_APP_ID         飞书自建应用 App ID
+FEISHU_APP_SECRET     飞书自建应用 App Secret
+FEISHU_FOLDER_TOKEN   个人空间文件夹 token（通过 feishu_auth.py 自动写入）
+FEISHU_DOMAIN         飞书文档域名（默认 boomingtech.feishu.cn）
+```
+
+---
+
+## v1.2.0（2026-03-16）
+
+### code-reviewer Agent 增强
+
+**`agents/code-reviewer.md`** — 新增第 0 步：审查前自动执行 `git pull` 拉取最新代码，无论成功与否都继续后续审查步骤。
+
+---
+
 ## v1.1.0（2026-03-15）
 
 ### Windows 测试基础设施

@@ -102,18 +102,18 @@ Windows 用户一键启动脚本，双击即可完成初始化：
 
 **头脑风暴服务器 Windows 脚本**
 
-- `skills/brainstorming/scripts/start-server.bat` — 对应 `start-server.sh` 的完整 Windows 实现
+- `skills/booming-code-brainstorm/scripts/start-server.bat` — 对应 `start-server.sh` 的完整 Windows 实现
   - 随机高端口启动，输出 JSON 格式连接信息
   - 支持 `--project-dir`、`--host`、`--url-host`、`--foreground`、`--background` 参数
   - 会话文件存储在 `<project-dir>\.booming\brainstorm\`
   - 后台模式通过 `start /b` 实现，PID 写入会话目录供 `stop-server.bat` 使用
-- `skills/brainstorming/scripts/stop-server.bat` — 对应 `stop-server.sh` 的完整 Windows 实现
+- `skills/booming-code-brainstorm/scripts/stop-server.bat` — 对应 `stop-server.sh` 的完整 Windows 实现
   - 读取 PID 文件并调用 `taskkill /F /PID` 终止服务器进程
   - 清理会话状态文件
 
 **调试工具 Windows 脚本**
 
-- `skills/systematic-debugging/find-polluter.bat` — 对应 `find-polluter.sh` 的 Windows 批处理实现
+- `skills/booming-code-systematic-debugging/find-polluter.bat` — 对应 `find-polluter.sh` 的 Windows 批处理实现
   - 二分查找污染测试文件/状态的脚本
   - 用法：`find-polluter.bat <要检查的文件或目录> <测试模式>`
   - 示例：`find-polluter.bat ".git" "src\**\*.test.ts"`
@@ -130,8 +130,7 @@ Windows 用户一键启动脚本，双击即可完成初始化：
 `hooks/hooks.json` — 配置 SessionStart 钩子，通过 `run-hook.cmd` 多语言包装器执行，确保在 Windows cmd.exe、Git Bash、PowerShell 和 Unix 环境中均可正常启动 `session-start` 脚本。
 
 `hooks/session-start`（无扩展名）— 平台自适应的会话启动脚本：
-- 读取 `using-superpowers` 技能内容并注入会话上下文
-- 检测旧版 `~/.config/superpowers/skills` 路径并给出迁移提示
+- 读取 `using-booming` 技能内容并注入会话上下文
 - 针对 Claude Code 发送 `hookSpecificOutput`，针对其他平台（Cursor 等）发送 `additional_context`，防止上下文双重注入
 
 ### 技能体系（继承自 superpowers v5.0.2）
@@ -140,8 +139,8 @@ Windows 用户一键启动脚本，双击即可完成初始化：
 
 | 分类 | 技能 | 关键文件 |
 |------|------|----------|
-| 启动 | `using-superpowers` | `SKILL.md`，`references/codex-tools.md`，`references/gemini-tools.md` |
-| 设计 | `brainstorming` | `SKILL.md`，`visual-companion.md`，`spec-document-reviewer-prompt.md`，`scripts/` |
+| 启动 | `using-booming` | `SKILL.md`，`references/codex-tools.md`，`references/gemini-tools.md` |
+| 设计 | `booming-code-brainstorm` | `SKILL.md`，`visual-companion.md`，`spec-document-reviewer-prompt.md`，`scripts/` |
 | 规划 | `writing-plans` | `SKILL.md`，`plan-document-reviewer-prompt.md` |
 | 开发 | `subagent-driven-development` | `SKILL.md`，`implementer-prompt.md`，`spec-reviewer-prompt.md`，`code-quality-reviewer-prompt.md` |
 | 开发 | `executing-plans` | `SKILL.md` |
@@ -174,7 +173,7 @@ Windows 用户一键启动脚本，双击即可完成初始化：
 **`tests/skill-triggering/`** — 技能触发验证
 
 验证 6 个技能能通过朴素自然语言描述触发，无需明确命名：
-`brainstorming`、`test-driven-development`、`systematic-debugging`、`writing-plans`、`executing-plans`、`requesting-code-review`
+`booming-code-brainstorm`、`test-driven-development`、`systematic-debugging`、`writing-plans`、`executing-plans`、`requesting-code-review`
 
 **`tests/explicit-skill-requests/`** — 明确请求场景测试
 

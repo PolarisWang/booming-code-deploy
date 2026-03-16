@@ -37,9 +37,9 @@
       "WebSearch"
     ],
     "additionalDirectories": [
-      "E:\\agent\\tracy-cli\\.claude\\skills\\feishu-docs",
-      "\\e:\\agent\\tracy-cli\\.claude\\skills\\feishu-docs\\tests",
-      "e:\\agent\\tracy-cli\\.claude\\skills\\feishu-docs"
+      "E:\\agent\\tracy-cli\\.claude\\skills\\booming-code-feishu-docs",
+      "\\e:\\agent\\tracy-cli\\.claude\\skills\\booming-code-feishu-docs\\tests",
+      "e:\\agent\\tracy-cli\\.claude\\skills\\booming-code-feishu-docs"
     ]
   }
 }

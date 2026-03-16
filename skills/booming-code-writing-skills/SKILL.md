@@ -73,7 +73,7 @@ API 文档、语法指南、工具文档（office docs）
 
 ```
 skills/
-  skill-name/
+  <booming>-<function>-<skill-name>/
     SKILL.md              # 主要参考（必需）
     supporting-file.*     # 仅在需要时
 ```

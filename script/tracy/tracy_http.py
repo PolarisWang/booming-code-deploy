@@ -34,6 +34,23 @@ def _discover_port() -> int | None:
     return None
 
 
+def _list_all_instances() -> list:
+    """Scan 9090-9099 and return all Tracy instances that have a trace file open."""
+    instances = []
+    for port in range(BASE_PORT, BASE_PORT + PORT_SCAN_RANGE):
+        try:
+            url = f"http://localhost:{port}/api/filepath"
+            with urllib.request.urlopen(url, timeout=1.0) as resp:
+                if resp.status == 200:
+                    data = json.loads(resp.read())
+                    fp = data.get("filepath", "")
+                    if fp:
+                        instances.append({"port": port, "filepath": fp})
+        except Exception:
+            continue
+    return instances
+
+
 def _get(port: int, path: str) -> dict:
     """GET request to Tracy UI API, return parsed JSON."""
     url = f"http://localhost:{port}{path}"
@@ -52,6 +69,11 @@ def main():
         sys.exit(1)
 
     cmd = sys.argv[1]
+
+    if cmd == "list":
+        instances = _list_all_instances()
+        print(json.dumps({"instances": instances}, ensure_ascii=False))
+        sys.exit(0)
 
     port = _discover_port()
     if port is None:

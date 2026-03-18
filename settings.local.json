@@ -33,9 +33,20 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:api.github.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(mv \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-selection/tracy_http.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py\")",
+      "Bash(mv \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-selection/tracy_config.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\")",
+      "Bash(sed -i 's|{skill_dir}/tracy_http\\\\.py|.claude/script/tracy/tracy_http.py|g; s|{skill_dir}/tracy_config\\\\.py|.claude/script/tracy/tracy_config.py|g' \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-selection/SKILL.md\")",
+      "Bash(sed -i 's|\\\\.claude/skills/booming-analysis-tracy-selection/tracy_http\\\\.py|.claude/script/tracy/tracy_http.py|g; s|\\\\.claude/skills/booming-analysis-tracy-selection/tracy_config\\\\.py|.claude/script/tracy/tracy_config.py|g' \"e:/agent/tracy-cli/.claude/agents/booming-analysis-tracy.md\")",
+      "Bash(python .claude/script/tracy/tracy_http.py list)",
+      "Bash(python e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py filepath)",
+      "Bash(python e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py selection)",
+      "Bash(python e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py zone 2771213130012)",
+      "Bash(mv \"e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py\" \"e:/agent/tracy-cli/script/tracy/tracy_http.py\")",
+      "Bash(mv \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\" \"e:/agent/tracy-cli/script/tracy/tracy_config.py\")",
+      "Bash(mv \"e:/agent/tracy-cli/script/tracy/tracy_http.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py\")",
+      "Bash(mv \"e:/agent/tracy-cli/script/tracy/tracy_config.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\")"
     ],
-    "additionalDirectories": [
-    ]
+    "additionalDirectories": []
   }
 }

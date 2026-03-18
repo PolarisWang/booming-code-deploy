@@ -128,7 +128,7 @@ digraph process {
 ```
 你：我正在使用子 Agent 驱动开发来执行这个计划。
 
-[读取计划文件一次：docs/booming/plans/feature-plan.md]
+[读取计划文件一次：docs/booming/<YYYY-MM-DD-HHmmss>-<feature-name>/plan/<YYYY-MM-DD-HHmmss>-<feature-name>-plan.md]
 [提取所有 5 个任务的完整文本和上下文]
 [创建包含所有任务的 TodoWrite]
 

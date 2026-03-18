@@ -1,13 +1,13 @@
 ---
 name: booming-analysis-code-optimization
-description: 由 booming-analysis-tracy-selection 调用——在已有 Tracy 热点 zone 数据且源文件本地可访问时使用。分析性能热点函数的代码上下文，给出具体优化步骤。不要直接触发，由 tracy-selection skill 传入 zone 数据后调用。
+description: 由 booming-analysis-tracy-profile 调用——在已有 Tracy 热点 zone 数据且源文件本地可访问时使用。分析性能热点函数的代码上下文，给出具体优化步骤。不要直接触发，由 tracy-selection skill 传入 zone 数据后调用。
 ---
 
 # 代码性能优化分析
 
 基于 Tracy 热点数据，读取本地源文件，分析代码上下文，给出具体可执行的优化建议。
 
-**保存分析结果到：** `docs/booming/{YYYY-MM-DD-HHmmss}-<feature-name>/opti/{YYYY-MM-DD-HHmmss}-<feature-name>-opti.md`
+**保存分析结果到：** `docs/booming/{YYYY-MM-DD}-<feature-name>/opti-{YYYY-MM-DD-HH}-<feature-name>.md`
 
 ## 输入上下文
 

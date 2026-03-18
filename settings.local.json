@@ -34,10 +34,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:api.github.com)",
       "WebSearch",
-      "Bash(mv \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-selection/tracy_http.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py\")",
-      "Bash(mv \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-selection/tracy_config.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\")",
-      "Bash(sed -i 's|{skill_dir}/tracy_http\\\\.py|.claude/script/tracy/tracy_http.py|g; s|{skill_dir}/tracy_config\\\\.py|.claude/script/tracy/tracy_config.py|g' \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-selection/SKILL.md\")",
-      "Bash(sed -i 's|\\\\.claude/skills/booming-analysis-tracy-selection/tracy_http\\\\.py|.claude/script/tracy/tracy_http.py|g; s|\\\\.claude/skills/booming-analysis-tracy-selection/tracy_config\\\\.py|.claude/script/tracy/tracy_config.py|g' \"e:/agent/tracy-cli/.claude/agents/booming-analysis-tracy.md\")",
+      "Bash(mv \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-profile/tracy_http.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py\")",
+      "Bash(mv \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-profile/tracy_config.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\")",
+      "Bash(sed -i 's|{skill_dir}/tracy_http\\\\.py|.claude/script/tracy/tracy_http.py|g; s|{skill_dir}/tracy_config\\\\.py|.claude/script/tracy/tracy_config.py|g' \"e:/agent/tracy-cli/.claude/skills/booming-analysis-tracy-profile/SKILL.md\")",
+      "Bash(sed -i 's|\\\\.claude/skills/booming-analysis-tracy-profile/tracy_http\\\\.py|.claude/script/tracy/tracy_http.py|g; s|\\\\.claude/skills/booming-analysis-tracy-profile/tracy_config\\\\.py|.claude/script/tracy/tracy_config.py|g' \"e:/agent/tracy-cli/.claude/agents/booming-analysis-tracy.md\")",
       "Bash(python .claude/script/tracy/tracy_http.py list)",
       "Bash(python e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py filepath)",
       "Bash(python e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py selection)",
@@ -45,7 +45,15 @@
       "Bash(mv \"e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py\" \"e:/agent/tracy-cli/script/tracy/tracy_http.py\")",
       "Bash(mv \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\" \"e:/agent/tracy-cli/script/tracy/tracy_config.py\")",
       "Bash(mv \"e:/agent/tracy-cli/script/tracy/tracy_http.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_http.py\")",
-      "Bash(mv \"e:/agent/tracy-cli/script/tracy/tracy_config.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\")"
+      "Bash(mv \"e:/agent/tracy-cli/script/tracy/tracy_config.py\" \"e:/agent/tracy-cli/.claude/script/tracy/tracy_config.py\")",
+      "Bash(grep -n \"GetZoneInfoById\\\\|GetFrameCount\\\\|GetFrameRange\\\\|GetThreads\\\\|GetTraceOverview\\\\|GetZoneCount\\\\|GetMessageCount\\\\|GetAllPlot\\\\|GetPoolNames\" E:/agent/tracy/profiler/src/*.cpp E:/agent/tracy/profiler/src/*.hpp)",
+      "Bash(bash profiler/docker/build_local.sh)",
+      "Bash(cmake --build . --config Release --target tracy-profiler)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(cmake --build bin --config Release --target Tracy)",
+      "Bash(cmake --build . --config Release)",
+      "Bash(cmake .. -G \"Visual Studio 17 2022\")"
     ],
     "additionalDirectories": []
   }

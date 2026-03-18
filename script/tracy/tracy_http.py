@@ -6,6 +6,9 @@ Usage:
     python tracy_http.py filepath
     python tracy_http.py selection
     python tracy_http.py zone <zone_id>
+    python tracy_http.py trace_overview
+    python tracy_http.py threads
+    python tracy_http.py frames [offset] [count]
 
 Outputs JSON to stdout. Exit code 0 = success, 1 = error.
 """
@@ -14,6 +17,7 @@ import json
 import sys
 import urllib.request
 import urllib.error
+import urllib.parse
 
 BASE_PORT = 9090
 PORT_SCAN_RANGE = 10
@@ -63,9 +67,23 @@ def _get(port: int, path: str) -> dict:
         return {"error": str(e)}
 
 
+def _get_raw(port: int, path: str) -> str:
+    """GET request, return raw response text (for CSV endpoint)."""
+    url = f"http://localhost:{port}{path}"
+    try:
+        with urllib.request.urlopen(url, timeout=30.0) as resp:
+            return resp.read().decode('utf-8')
+    except urllib.error.HTTPError as e:
+        print(json.dumps({"error": f"HTTP {e.code}: {e.reason}"}))
+        sys.exit(1)
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
+        sys.exit(1)
+
+
 def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: tracy_http.py <filepath|selection|zone> [zone_id]"}))
+        print(json.dumps({"error": "Usage: tracy_http.py <filepath|selection|zone|trace_overview|trace_info|threads|frames|zone_children|messages|plots|plot_count|plot_values|pools|pool_overview|pool_allocations|pool_callstack_tree|stats_summary|stats_frame_tags|stats_export_csv> [args]"}))
         sys.exit(1)
 
     cmd = sys.argv[1]
@@ -98,8 +116,130 @@ def main():
         result = _get(port, f"/api/zone/{zone_id}")
         result["port"] = port
 
+    elif cmd == "trace_overview":
+        # Returns trace metadata: captured_program, host_info, first_time, last_time,
+        # zone_count, frame_count, lock_count, plot_count, message_count, context_switch_count.
+        result = _get(port, "/api/trace_overview")
+        result["port"] = port
+
+    elif cmd == "trace_info":
+        # Returns detailed trace info: host, cpu, timing, app_info, cpu_topology,
+        # frame_stats, trace_stats.
+        result = _get(port, "/api/trace_info")
+        result["port"] = port
+
+    elif cmd == "threads":
+        # Returns list of all threads: [{thread_id, thread_name}, ...]
+        result = _get(port, "/api/threads")
+        result["port"] = port
+
+    elif cmd == "frames":
+        # Returns paginated frame list with timing.
+        # Optional args: offset (default 0), count (default 100, max 1000).
+        offset = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+        count = int(sys.argv[3]) if len(sys.argv) > 3 else 100
+        result = _get(port, f"/api/frames?offset={offset}&count={count}")
+        result["port"] = port
+
+    elif cmd == "zone_children":
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Usage: tracy_http.py zone_children <zone_id>"}))
+            sys.exit(1)
+        zone_id = sys.argv[2]
+        result = _get(port, f"/api/zone/{zone_id}/children")
+        result["port"] = port
+
+    elif cmd == "messages":
+        # Optional args: offset count start_ns end_ns
+        offset = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+        count = int(sys.argv[3]) if len(sys.argv) > 3 else 50
+        params = f"offset={offset}&count={count}"
+        if len(sys.argv) > 4:
+            params += f"&start={sys.argv[4]}"
+        if len(sys.argv) > 5:
+            params += f"&end={sys.argv[5]}"
+        result = _get(port, f"/api/messages?{params}")
+        result["port"] = port
+
+    elif cmd == "plots":
+        result = _get(port, "/api/plots")
+        result["port"] = port
+
+    elif cmd == "plot_count":
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Usage: tracy_http.py plot_count <name>"}))
+            sys.exit(1)
+        name = urllib.parse.quote(sys.argv[2], safe='')
+        result = _get(port, f"/api/plots/{name}/count")
+        result["port"] = port
+
+    elif cmd == "plot_values":
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Usage: tracy_http.py plot_values <name> [offset] [count] [start_ns] [end_ns]"}))
+            sys.exit(1)
+        name = urllib.parse.quote(sys.argv[2], safe='')
+        offset = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+        count = int(sys.argv[4]) if len(sys.argv) > 4 else 100
+        params = f"offset={offset}&count={count}"
+        if len(sys.argv) > 5:
+            params += f"&start={sys.argv[5]}"
+        if len(sys.argv) > 6:
+            params += f"&end={sys.argv[6]}"
+        result = _get(port, f"/api/plots/{name}/values?{params}")
+        result["port"] = port
+
+    elif cmd == "pools":
+        result = _get(port, "/api/memory/pools")
+        result["port"] = port
+
+    elif cmd == "pool_overview":
+        if len(sys.argv) < 5:
+            print(json.dumps({"error": "Usage: tracy_http.py pool_overview <pool> <start_ns> <end_ns>"}))
+            sys.exit(1)
+        pool = urllib.parse.quote(sys.argv[2], safe='')
+        result = _get(port, f"/api/memory/{pool}/overview?start={sys.argv[3]}&end={sys.argv[4]}")
+        result["port"] = port
+
+    elif cmd == "pool_allocations":
+        if len(sys.argv) < 5:
+            print(json.dumps({"error": "Usage: tracy_http.py pool_allocations <pool> <start_ns> <end_ns> [offset] [count] [sort]"}))
+            sys.exit(1)
+        pool = urllib.parse.quote(sys.argv[2], safe='')
+        offset = int(sys.argv[5]) if len(sys.argv) > 5 else 0
+        count = int(sys.argv[6]) if len(sys.argv) > 6 else 20
+        sort = sys.argv[7] if len(sys.argv) > 7 else "none"
+        result = _get(port, f"/api/memory/{pool}/allocations?start={sys.argv[3]}&end={sys.argv[4]}&offset={offset}&count={count}&sort={sort}")
+        result["port"] = port
+
+    elif cmd == "pool_callstack_tree":
+        if len(sys.argv) < 5:
+            print(json.dumps({"error": "Usage: tracy_http.py pool_callstack_tree <pool> <include_active> <include_inactive> [start_ns] [end_ns]"}))
+            sys.exit(1)
+        pool = urllib.parse.quote(sys.argv[2], safe='')
+        params = f"include_active={sys.argv[3]}&include_inactive={sys.argv[4]}"
+        if len(sys.argv) > 5:
+            params += f"&start={sys.argv[5]}"
+        if len(sys.argv) > 6:
+            params += f"&end={sys.argv[6]}"
+        result = _get(port, f"/api/memory/{pool}/callstack_tree?{params}")
+        result["port"] = port
+
+    elif cmd == "stats_summary":
+        result = _get(port, "/api/stats/summary")
+        result["port"] = port
+
+    elif cmd == "stats_frame_tags":
+        result = _get(port, "/api/stats/frame_tags")
+        result["port"] = port
+
+    elif cmd == "stats_export_csv":
+        # Returns raw CSV text, not JSON
+        csv_text = _get_raw(port, "/api/stats/export_csv")
+        print(csv_text, end="")
+        sys.exit(0)
+
     else:
-        print(json.dumps({"error": f"Unknown command: {cmd}. Use: filepath, selection, zone"}))
+        print(json.dumps({"error": f"Unknown command: {cmd}. Use: filepath, selection, zone, trace_overview, trace_info, threads, frames, zone_children, messages, plots, plot_count, plot_values, pools, pool_overview, pool_allocations, pool_callstack_tree, stats_summary, stats_frame_tags, stats_export_csv"}))
         sys.exit(1)
 
     print(json.dumps(result, ensure_ascii=False))

@@ -26,7 +26,7 @@ description: "在进行任何创意工作之前你必须使用本技能——创
 3. **提出澄清问题** — 一次一个，了解目的/约束/成功标准
 4. **提出 2-3 种方案** — 附带权衡分析和你的推荐
 5. **展示设计** — 按复杂度分段展示，每段后获得用户批准
-6. **编写设计文档** — 保存到 `docs/booming/<YYYY-MM-DD-HHmmss>-<feature-name>/specs/<YYYY-MM-DD-HHmmss>-<feature-name>-design.md` 并提交
+6. **编写设计文档** — 保存到 `docs/booming/<YYYY-MM-DD>-<feature-name>/design-<YYYY-MM-DD-HH>-<feature-name>.md` 并提交
 7. **规格审查循环** — 派发规格文档审查者子 Agent，提供精心构建的审查上下文（绝不使用你的会话历史）；修复问题并重新派发直到批准（最多 5 次迭代，然后向人类寻求指导）
 8. **用户审查已写规格** — 在继续之前请用户审查规格文件
 9. **过渡到实现** — 调用 writing-plans 技能来创建实现计划
@@ -111,7 +111,7 @@ digraph brainstorming {
 
 **文档：**
 
-- 将经过验证的设计（规格）写入 `docs/booming/<YYYY-MM-DD-HHmmss>-<feature-name>/specs/<YYYY-MM-DD-HHmmss>-<feature-name>-design.md`
+- 将经过验证的设计（规格）写入 `docs/booming/<YYYY-MM-DD>-<feature-name>/design-<YYYY-MM-DD-HH>-<feature-name>.md`
   - （用户对规格位置的偏好覆盖此默认值）
 - 如果可用，使用 elements-of-style:writing-clearly-and-concisely 技能
 - 将设计文档提交到 git

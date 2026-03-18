@@ -4,7 +4,7 @@
 
 **用途：** 验证规格是否完整、一致，并已准备好进行实现规划。
 
-**派发时机：** 规格文档写入 docs/booming/<YYYY-MM-DD-HHmmss>-<feature-name>/specs/ 之后
+**派发时机：** 规格文档写入 docs/booming/<YYYY-MM-DD>-<feature-name>/ 之后
 
 ```
 Task tool (general-purpose):

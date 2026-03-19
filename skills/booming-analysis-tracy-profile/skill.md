@@ -1,5 +1,5 @@
 ---
-name: booming-analysis-tracy-selection
+name: booming-analysis-tracy-profile
 description: 当用户提出 Tracy 性能分析问题时使用——如"这个函数为什么慢"、"帮我分析当前选中的区域"、"分析这个 tracy"。要求 Tracy Profiler UI 已打开（localhost:9090-9099）。不适用于纯概念性 Tracy 问题。
 ---
 

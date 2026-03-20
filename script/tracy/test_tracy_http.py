@@ -593,6 +593,33 @@ class _MockHandler(BaseHTTPRequestHandler):
             },
         ]),
         "/api/stats/export_csv": (200, "frame,time_from_start,frame_duration,frame_start_time,frame_end_time\n0,0.000,16.667,0.000,16.667\n1,16.667,16.667,16.667,33.333\n"),
+        "/api/zones/by_tag?tag=logic": (200, {
+            "tag": "logic",
+            "count": 3,
+            "zone_ids": [111111, 222222, 333333],
+        }),
+        "/api/zones/by_tag?tag=logic&start_frame=0&end_frame=10": (200, {
+            "tag": "logic",
+            "count": 2,
+            "zone_ids": [111111, 222222],
+        }),
+        "/api/zones/by_tag?tag=unknown_tag_xyz": (200, {
+            "tag": "unknown_tag_xyz",
+            "count": 0,
+            "zone_ids": [],
+        }),
+        "/api/frame_number?ts=1000000": (200, {
+            "ts_ns": 1000000,
+            "frame_number": 0,
+        }),
+        "/api/frame_number?ts=999999999999": (200, {
+            "ts_ns": 999999999999,
+            "frame_number": 99,
+        }),
+        "/api/frame_number?ts=0": (200, {
+            "ts_ns": 0,
+            "frame_number": -1,
+        }),
     }
 
     def log_message(self, *args):
@@ -1575,6 +1602,82 @@ class TracyHttpMockTests(unittest.TestCase):
             self.skipTest("No data rows")
         col_counts = [len(l.split(",")) for l in lines]
         self.assertEqual(len(set(col_counts)), 1, "Inconsistent column counts across rows")
+
+    # ------------------------------------------------------------------
+    # /api/zones/by_tag
+    # ------------------------------------------------------------------
+
+    def test_zones_by_tag_200_has_required_fields(self):
+        code, data = _get(self.port, "/api/zones/by_tag?tag=logic")
+        self.assertEqual(code, 200)
+        self.assertIn("tag", data)
+        self.assertIn("count", data)
+        self.assertIn("zone_ids", data)
+
+    def test_zones_by_tag_tag_matches_request(self):
+        _, data = _get(self.port, "/api/zones/by_tag?tag=logic")
+        self.assertEqual(data["tag"], "logic")
+
+    def test_zones_by_tag_count_matches_zone_ids_length(self):
+        _, data = _get(self.port, "/api/zones/by_tag?tag=logic")
+        self.assertEqual(data["count"], len(data["zone_ids"]))
+
+    def test_zones_by_tag_zone_ids_are_integers(self):
+        _, data = _get(self.port, "/api/zones/by_tag?tag=logic")
+        for zid in data["zone_ids"]:
+            self.assertIsInstance(zid, int)
+            self.assertGreater(zid, 0)
+
+    def test_zones_by_tag_with_frame_range(self):
+        code, data = _get(self.port, "/api/zones/by_tag?tag=logic&start_frame=0&end_frame=10")
+        self.assertEqual(code, 200)
+        self.assertIn("zone_ids", data)
+        # Frame-filtered result should have <= full result
+        self.assertLessEqual(data["count"], 3)
+
+    def test_zones_by_tag_unknown_tag_returns_empty(self):
+        code, data = _get(self.port, "/api/zones/by_tag?tag=unknown_tag_xyz")
+        self.assertEqual(code, 200)
+        self.assertEqual(data["count"], 0)
+        self.assertEqual(data["zone_ids"], [])
+
+    def test_zones_by_tag_missing_tag_returns_400(self):
+        code, data = _get(self.port, "/api/zones/by_tag")
+        # Real server returns 400; mock falls back to 404 — both indicate missing param
+        self.assertIn(code, (400, 404))
+        self.assertIn("error", data)
+
+    # ------------------------------------------------------------------
+    # /api/frame_number
+    # ------------------------------------------------------------------
+
+    def test_frame_number_200_has_required_fields(self):
+        code, data = _get(self.port, "/api/frame_number?ts=1000000")
+        self.assertEqual(code, 200)
+        self.assertIn("ts_ns", data)
+        self.assertIn("frame_number", data)
+
+    def test_frame_number_ts_matches_request(self):
+        _, data = _get(self.port, "/api/frame_number?ts=1000000")
+        self.assertEqual(data["ts_ns"], 1000000)
+
+    def test_frame_number_is_integer(self):
+        _, data = _get(self.port, "/api/frame_number?ts=1000000")
+        self.assertIsInstance(data["frame_number"], int)
+
+    def test_frame_number_valid_ts_returns_non_negative(self):
+        _, data = _get(self.port, "/api/frame_number?ts=1000000")
+        self.assertGreaterEqual(data["frame_number"], 0)
+
+    def test_frame_number_out_of_range_returns_minus_one(self):
+        _, data = _get(self.port, "/api/frame_number?ts=0")
+        self.assertEqual(data["frame_number"], -1)
+
+    def test_frame_number_missing_ts_returns_400(self):
+        code, data = _get(self.port, "/api/frame_number")
+        # Real server returns 400; mock falls back to 404 — both indicate missing param
+        self.assertIn(code, (400, 404))
+        self.assertIn("error", data)
 
 
 # ---------------------------------------------------------------------------

@@ -112,6 +112,38 @@ python .claude/script/tracy/tracy_http.py <命令> [参数...]
 | `selection` | 读取 UI 当前选中 zone | `valid`, `zone_id`, `name`, `function`, `file`, `line`, `thread_id`, `thread_name`, `parent_id`, `children_ids`, `start_ns`, `duration_ns`, `tag`, `frame_number` |
 | `zone <id>` | 按 zone_id 查询 zone 详情（与 selection 字段相同） | 同上 |
 | `zone_children <id>` | 获取指定 zone 的直接子 zone 列表 | `children: [{zone_id, function, file, line, duration_ns, ...}]` |
+| `zones_by_tag <tag> [start_frame] [end_frame]` | 按 Tag 名称查询所有匹配 zone 的 ID 列表，可按帧范围过滤 | `tag`, `count`, `zone_ids: [uint64, ...]` |
+
+#### `zones_by_tag` 详细说明
+
+```bash
+# 查询所有 logic_motor tag 的 zone ID
+python .claude/script/tracy/tracy_http.py zones_by_tag logic_motor
+
+# 只查询第 10~20 帧内的 zone
+python .claude/script/tracy/tracy_http.py zones_by_tag logic_motor 10 20
+```
+
+返回格式：
+```json
+{
+  "tag":      "logic_motor",
+  "count":    42,
+  "zone_ids": [140234567890, 140234567912, ...]
+}
+```
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `tag` | string | Tag 名称，必须与 `profile_tag.cpp` 中的映射完全一致（如 `logic_motor`） |
+| `start_frame` | int（可选） | 起始帧索引（0-based，包含）；省略或 -1 表示无下界 |
+| `end_frame` | int（可选） | 结束帧索引（0-based，包含）；省略或 -1 表示无上界 |
+
+返回的 `zone_ids` 是 `ZoneEvent*` 指针地址，可直接传给 `zone <id>` 或 `zone_children <id>` 做进一步查询。
+
+**注意：**
+- Tag 名称未知（不在映射表中）时返回 `count: 0, zone_ids: []`，不报错
+- 跨越帧边界的 zone（start 在帧内但 end 超出）仍会被收录
 
 ### 线程与帧
 
@@ -119,7 +151,37 @@ python .claude/script/tracy/tracy_http.py <命令> [参数...]
 |------|------|-------------|
 | `threads` | 所有线程列表 | `threads: [{thread_id, thread_name}]` |
 | `frames [offset] [count]` | 分页帧列表，默认 0 100，上限 1000/次 | `total_count`, `frames: [{frame_idx, start_ns, end_ns, duration_ns}]` |
+| `frame_number <ts_ns>` | 将时间戳（纳秒）转换为帧编号 | `ts_ns`, `frame_number` |
 | `stats_export_csv` | 帧统计 CSV（输出原始文本，非 JSON） | 列：`frame`, `time_from_start`, `frame_duration`, `frame_start_time`, `frame_end_time`（时间单位 ms） |
+
+#### `frame_number` 详细说明
+
+```bash
+# 查询时间戳 1234567890 ns 对应的帧编号
+python .claude/script/tracy/tracy_http.py frame_number 1234567890
+```
+
+返回格式：
+```json
+{
+  "ts_ns":        1234567890,
+  "frame_number": 73
+}
+```
+
+`frame_number` 为 `-1` 表示该时间戳不在任何帧范围内（或 trace 无帧数据）。
+
+**典型用途：** 结合 `zones_by_tag` 查到某个 zone 的 `start_ns`，再用 `frame_number` 确认它属于哪一帧：
+
+```bash
+# 1. 查 logic_motor 的所有 zone
+python .claude/script/tracy/tracy_http.py zones_by_tag logic_motor
+
+# 2. 取某个 zone_id 查详情，得到 start_ns
+python .claude/script/tracy/tracy_http.py zone 140234567890
+
+# 3. 用 start_ns 查帧编号
+python .claude/script/tracy/tracy_http.py frame_number 8347291000
 
 ### 消息
 
@@ -194,4 +256,206 @@ python .claude/script/tracy/tracy_http.py <命令> [参数...]
 | 无 trace 加载（503 接口） | `{"error": "No trace loaded"}` | 1 |
 | 成功 | 正常 JSON + `port` 字段 | 0 |
 
-**503 接口**（无 trace 时返回 503）：`trace_overview`, `trace_info`, `threads`, `frames`, `messages`, `plots`, `plot_count`, `plot_values`, `pools`, `pool_overview`, `pool_allocations`, `pool_callstack_tree`, `stats_summary`, `stats_frame_tags`, `stats_export_csv`
+**503 接口**（无 trace 时返回 503）：`trace_overview`, `trace_info`, `threads`, `frames`, `messages`, `plots`, `plot_count`, `plot_values`, `pools`, `pool_overview`, `pool_allocations`, `pool_callstack_tree`, `stats_summary`, `stats_frame_tags`, `stats_export_csv`, `zones_by_tag`, `frame_number`
+
+---
+
+## 常用分析脚本
+
+在 `.claude/script/tracy/` 目录下提供了以下高层分析脚本，封装了常见的性能分析逻辑，可直接调用。
+
+### 脚本速查
+
+| 脚本文件 | 用途 | 典型用途 |
+|---------|------|---------|
+| `analyze_overview.py` | Trace 全局概况 | 分析开始时建立基础认知 |
+| `analyze_frames.py` | 帧率统计与最差帧查找 | 帧率问题 / 卡顿分析 |
+| `analyze_tags.py` | CPU Tag 层级耗时分析 | 整体瓶颈定位 |
+| `analyze_memory.py` | 内存池分配与泄漏统计 | 内存问题分析 |
+
+---
+
+### `analyze_overview.py` — Trace 概况
+
+一键输出程序信息、帧率摘要、线程 / Plot / 内存池列表，适合作为任何分析的第一步。
+
+```bash
+# 文字摘要（推荐）
+python .claude/script/tracy/analyze_overview.py
+
+# JSON 格式（可供后续脚本解析）
+python .claude/script/tracy/analyze_overview.py --json
+```
+
+**典型输出：**
+```
+=== Trace 基础信息 ===
+程序：game.exe
+主机：Windows 11 Pro, i9-13900K
+PID：12345   时钟精度：100 ns
+App Info：GameVersion=1.2.3 / BuildConfig=Release
+CPU：1 个 Package，共 16 个逻辑核
+
+=== Trace 时长与规模 ===
+时长：20.84s   帧数：1,247
+Zone 总数：2,300,000   消息：512   锁：128   Plot：4
+
+=== 帧率概况（来自 trace_info）===
+平均帧时：16.7ms（59.9 FPS）
+最差帧：83.2ms   最优帧：12.0ms
+
+=== 线程列表（共 8 个）===
+  [12345] Main thread
+  [12346] TaskWorker_0
+  ...
+```
+
+---
+
+### `analyze_frames.py` — 帧率统计
+
+获取全量帧数据，计算超预算帧数、百分位数、最差 N 帧。
+
+```bash
+# 默认预算 16.67ms（60FPS），显示最差5帧
+python .claude/script/tracy/analyze_frames.py
+
+# 自定义帧预算和显示数量
+python .claude/script/tracy/analyze_frames.py --budget 33.33 --top 10
+
+# JSON 格式输出（供 AI 解析）
+python .claude/script/tracy/analyze_frames.py --json
+```
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--budget <ms>` | 帧时间预算（毫秒） | `16.67`（60FPS） |
+| `--top <n>` | 显示最差 N 帧 | `5` |
+| `--json` | 输出 JSON | 否 |
+
+**典型输出：**
+```
+=== 帧率统计（共 1,247 帧，总时长 20.8s）===
+平均帧时：16.7ms（59.9 FPS）
+最差帧：第 847 帧，83.2ms（超预算 4.9×）
+最优帧：12.0ms
+
+超预算帧（> 16.67ms = 60FPS）：187 帧（15.0%）  ⚠️
+超 2× 预算帧（> 33.33ms）：23 帧
+
+百分位：
+  P50=15.1ms  P75=17.4ms  P90=21.2ms  P99=48.6ms
+
+最差 5 帧：
+  #847    83.2ms  [+4.9×]  ⚠️
+  #203    61.4ms  [+3.7×]  ⚠️
+  #901    58.7ms  [+3.5×]  ⚠️
+  #156    47.3ms  [+2.8×]  ⚠️
+  #512    42.1ms  [+2.5×]  ⚠️
+```
+
+---
+
+### `analyze_tags.py` — CPU Tag 耗时分析
+
+从 `stats_frame_tags` 数据中计算各 Tag 的全程累计耗时和平均每帧耗时，按层级树形展示。
+
+```bash
+# 全量层级展示
+python .claude/script/tracy/analyze_tags.py
+
+# 只看 logic 子树
+python .claude/script/tracy/analyze_tags.py --filter logic
+
+# JSON 格式（每个 tag 的聚合数据）
+python .claude/script/tracy/analyze_tags.py --json
+```
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--filter <prefix>` | 只显示指定前缀的 tag | 全部 |
+| `--json` | 输出 JSON | 否 |
+
+**典型输出：**
+```
+=== CPU Tag 耗时分析（全程 20.8s，1,245 帧）===
+Tag                                               总span     占比   avg/帧    空闲率
+------------------------------------------------------------------------------------------
+▼ logic                                          12,400.0ms  59.6%  avg/frame:  9.96ms
+  ▼ logic_motor                                   6,200.0ms  29.8%  avg/frame:  4.98ms
+      logic_motor_managertick                     2,100.0ms  10.1%  avg/frame:  1.69ms
+  ▼ logic_physicsscene                            3,800.0ms  18.3%  avg/frame:  3.05ms
+      logic_physicsscene_simulate                 2,400.0ms  11.5%  avg/frame:  1.93ms
+
+▼ present                                         5,200.0ms  25.0%  avg/frame:  4.18ms   idle: 22% ⚠️多线程利用率低
+    present_animation                             2,100.0ms  10.1%  avg/frame:  1.69ms
+
+▼ render                                          2,800.0ms  13.5%  avg/frame:  2.25ms
+```
+
+**异常标注规则：**
+- `⚠️多线程利用率低`：avg idle_ratio > 20%，表示该 tag 跨度时间内有大量空闲，多线程未充分利用
+- `← 主要瓶颈`：span_time 占总时长 > 50%
+
+---
+
+### `analyze_memory.py` — 内存池分析
+
+对所有内存池执行全程 overview，统计分配次数、存活量，标注疑似泄漏。
+
+```bash
+# 分析所有内存池
+python .claude/script/tracy/analyze_memory.py
+
+# 只分析 default 池
+python .claude/script/tracy/analyze_memory.py --pool default
+
+# JSON 格式
+python .claude/script/tracy/analyze_memory.py --json
+```
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--pool <name>` | 只分析指定内存池 | 全部 |
+| `--json` | 输出 JSON | 否 |
+
+**典型输出：**
+```
+=== 内存池摘要（trace 全程 20.8s，1,247 帧）===
+池名                            总分配次      总分配量    存活次     存活量        存活率  备注
+--------------------------------------------------------------------------------------------------------------
+default                            4,821      1.20 GB        23      19.6 MB     0.5%  ⚠️ 疑似泄漏
+temp                              98,432      2.10 GB         0         0 B      0.0%  频繁分配 79次/帧
+gpu                                  312    380.0 MB          0         0 B      0.0%  ✓
+--------------------------------------------------------------------------------------------------------------
+总存活内存：19.6 MB
+```
+
+**异常标注规则：**
+- 存活率 > 1%：`⚠️ 疑似泄漏`（分配后未释放比例高）
+- 分配次/帧 > 50：`频繁分配 N次/帧`（GC 压力风险）
+
+---
+
+### 脚本组合使用示例
+
+**快速建立全局认知（分析开始时）：**
+```bash
+python .claude/script/tracy/analyze_overview.py
+python .claude/script/tracy/analyze_frames.py
+python .claude/script/tracy/analyze_tags.py
+```
+
+**定位帧率问题：**
+```bash
+# 1. 找出最差帧
+python .claude/script/tracy/analyze_frames.py --top 10 --json
+
+# 2. 查最差帧区间内的消息（把 start_ns/end_ns 替换为实际值）
+python .claude/script/tracy/tracy_http.py messages 0 50 <start_ns> <end_ns>
+```
+
+**分析 logic 模块瓶颈：**
+```bash
+python .claude/script/tracy/analyze_tags.py --filter logic
+```

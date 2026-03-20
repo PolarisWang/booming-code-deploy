@@ -22,10 +22,19 @@ import urllib.parse
 BASE_PORT = 9090
 PORT_SCAN_RANGE = 10
 
+import os as _os
+_ENV_TEST_PORT = _os.environ.get("TRACY_TEST_PORT")
+
 
 def _discover_port() -> int | None:
-    """Scan 9090-9099 for a Tracy Profiler UI with a trace file open."""
-    for port in range(BASE_PORT, BASE_PORT + PORT_SCAN_RANGE):
+    """Scan 9090-9099 for a Tracy Profiler UI with a trace file open.
+    If env var TRACY_TEST_PORT is set, only scan that single port (for testing).
+    """
+    if _ENV_TEST_PORT:
+        scan = [int(_ENV_TEST_PORT)]
+    else:
+        scan = range(BASE_PORT, BASE_PORT + PORT_SCAN_RANGE)
+    for port in scan:
         try:
             url = f"http://localhost:{port}/api/filepath"
             with urllib.request.urlopen(url, timeout=1.0) as resp:
@@ -40,8 +49,12 @@ def _discover_port() -> int | None:
 
 def _list_all_instances() -> list:
     """Scan 9090-9099 and return all Tracy instances that have a trace file open."""
+    if _ENV_TEST_PORT:
+        scan = [int(_ENV_TEST_PORT)]
+    else:
+        scan = range(BASE_PORT, BASE_PORT + PORT_SCAN_RANGE)
     instances = []
-    for port in range(BASE_PORT, BASE_PORT + PORT_SCAN_RANGE):
+    for port in scan:
         try:
             url = f"http://localhost:{port}/api/filepath"
             with urllib.request.urlopen(url, timeout=1.0) as resp:
@@ -55,12 +68,27 @@ def _list_all_instances() -> list:
     return instances
 
 
+def _fix_json(raw: bytes) -> dict:
+    """Try to parse JSON, falling back to fixing a known server-side bug
+    where each child zone object has an extra closing brace:
+      }},{ instead of },{   and   }}]} instead of }]}
+    """
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        import re
+        text = raw.decode("utf-8", errors="replace")
+        # Each zone object ends with }} instead of } before , or ]
+        fixed = re.sub(r'\}\}([,\]])', r'}\1', text)
+        return json.loads(fixed)
+
+
 def _get(port: int, path: str) -> dict:
     """GET request to Tracy UI API, return parsed JSON."""
     url = f"http://localhost:{port}{path}"
     try:
         with urllib.request.urlopen(url, timeout=5.0) as resp:
-            return json.loads(resp.read())
+            return _fix_json(resp.read())
     except urllib.error.HTTPError as e:
         return {"error": f"HTTP {e.code}: {e.reason}"}
     except Exception as e:
@@ -230,7 +258,10 @@ def main():
 
     elif cmd == "stats_frame_tags":
         result = _get(port, "/api/stats/frame_tags")
-        result["port"] = port
+        # stats_frame_tags returns a JSON array; wrap it so port can be attached
+        if isinstance(result, list):
+            print(json.dumps(result, ensure_ascii=False))
+            sys.exit(0)
 
     elif cmd == "stats_export_csv":
         # Returns raw CSV text, not JSON
@@ -238,8 +269,30 @@ def main():
         print(csv_text, end="")
         sys.exit(0)
 
+    elif cmd == "zones_by_tag":
+        # Usage: zones_by_tag <tag_name> [start_frame] [end_frame]
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Usage: tracy_http.py zones_by_tag <tag_name> [start_frame] [end_frame]"}))
+            sys.exit(1)
+        tag = urllib.parse.quote(sys.argv[2], safe='')
+        params = f"tag={tag}"
+        if len(sys.argv) > 3:
+            params += f"&start_frame={sys.argv[3]}"
+        if len(sys.argv) > 4:
+            params += f"&end_frame={sys.argv[4]}"
+        result = _get(port, f"/api/zones/by_tag?{params}")
+        result["port"] = port
+
+    elif cmd == "frame_number":
+        # Usage: frame_number <timestamp_ns>
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Usage: tracy_http.py frame_number <timestamp_ns>"}))
+            sys.exit(1)
+        result = _get(port, f"/api/frame_number?ts={sys.argv[2]}")
+        result["port"] = port
+
     else:
-        print(json.dumps({"error": f"Unknown command: {cmd}. Use: filepath, selection, zone, trace_overview, trace_info, threads, frames, zone_children, messages, plots, plot_count, plot_values, pools, pool_overview, pool_allocations, pool_callstack_tree, stats_summary, stats_frame_tags, stats_export_csv"}))
+        print(json.dumps({"error": f"Unknown command: {cmd}. Use: filepath, selection, zone, trace_overview, trace_info, threads, frames, zone_children, messages, plots, plot_count, plot_values, pools, pool_overview, pool_allocations, pool_callstack_tree, stats_summary, stats_frame_tags, stats_export_csv, zones_by_tag, frame_number"}))
         sys.exit(1)
 
     print(json.dumps(result, ensure_ascii=False))

@@ -1,218 +1,151 @@
 ---
 name: using-git-worktrees
-description: 在开始需要与当前工作区隔离的功能工作时，或在执行实现计划之前使用——创建具有智能目录选择和安全验证的隔离 git worktree
+description: >
+  Git 工作流技能：包含隔离开发的 worktree 管理和本地提交与备份分支工作流规则。
+  支持创建隔离的 git worktree 进行功能开发，以及规范化的提交流程（提交修改、提交修改并合并）。
 ---
 
-# 使用 Git Worktree
+# Git 工作流技能
 
 ## 概述
 
-Git worktree 创建共享同一仓库的隔离工作空间，允许在不切换的情况下同时在多个分支上工作。
+本技能提供两个核心功能：
 
-**核心原则：** 系统性目录选择 + 安全验证 = 可靠的隔离。
+1. **Worktree 隔离开发**：在需要与当前工作区隔离的功能工作时使用
+2. **本地提交与备份分支工作流**：规范化的 Git 提交流程，支持细粒度的修改追踪
 
-**开始时宣布：** "我正在使用 using-git-worktrees 技能来设置隔离的工作空间。"
+---
 
-## 目录选择过程
+## 第一部分：Worktree 隔离开发
 
-按以下优先级顺序：
+### 使用场景
 
-### 1. 检查现有目录
+在以下情况下使用 worktree 隔离开发：
 
-```bash
-# 按优先级顺序检查
-ls -d .worktrees 2>/dev/null     # 首选（隐藏）
-ls -d worktrees 2>/dev/null      # 备选
-```
+- 需要与当前工作区隔离的功能工作
+- 执行实现计划之前的准备工作
+- 需要同时在多个分支上工作
 
-**如果找到：** 使用该目录。如果两者都存在，`.worktrees` 优先。
+### 工作原理
 
-### 2. 检查 CLAUDE.md
+创建具有智能目录选择和安全验证的隔离 git worktree，确保：
 
-```bash
-grep -i "worktree.*director" CLAUDE.md 2>/dev/null
-```
+- 工作区完全隔离，不影响主工作目录
+- 自动创建新分支或检出现有分支
+- 完成后可安全清理或保留
 
-**如果指定了偏好：** 直接使用，无需询问。
+---
 
-### 3. 询问用户
+## 第二部分：本地提交与备份分支工作流
 
-如果没有目录且没有 CLAUDE.md 偏好：
+### 核心概念
 
-```
-未找到 worktree 目录。我应该在哪里创建 worktree？
-
-1. .worktrees/（项目本地，隐藏）
-2. ~/.config/booming/worktrees/<project-name>/（全局位置）
-
-你更倾向于哪个？
-```
-
-## 安全验证
-
-### 对于项目本地目录（.worktrees 或 worktrees）
-
-**在创建 worktree 之前必须验证目录已被忽略：**
-
-```bash
-# 检查目录是否被忽略（尊重本地、全局和系统 gitignore）
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
-```
-
-**如果未被忽略：**
-
-按"立即修复损坏的东西"规则：
-1. 向 .gitignore 添加适当的行
-2. 提交更改
-3. 继续创建 worktree
-
-**为什么关键：** 防止意外将 worktree 内容提交到仓库。
-
-### 对于全局目录（~/.config/booming/worktrees）
-
-无需 .gitignore 验证——完全在项目之外。
-
-## 创建步骤
-
-### 1. 检测项目名称
-
-```bash
-project=$(basename "$(git rev-parse --show-toplevel)")
-```
-
-### 2. 创建 Worktree
-
-```bash
-# 确定完整路径
-case $LOCATION in
-  .worktrees|worktrees)
-    path="$LOCATION/$BRANCH_NAME"
-    ;;
-  ~/.config/booming/worktrees/*)
-    path="~/.config/booming/worktrees/$project/$BRANCH_NAME"
-    ;;
-esac
-
-# 创建 worktree 和新分支
-git worktree add "$path" -b "$BRANCH_NAME"
-cd "$path"
-```
-
-### 3. 运行项目设置
-
-自动检测并运行适当的设置：
-
-```bash
-# Node.js
-if [ -f package.json ]; then npm install; fi
-
-# Rust
-if [ -f Cargo.toml ]; then cargo build; fi
-
-# Python
-if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-if [ -f pyproject.toml ]; then poetry install; fi
-
-# Go
-if [ -f go.mod ]; then go mod download; fi
-```
-
-### 4. 验证干净的基准
-
-运行测试以确保 worktree 以干净状态开始：
-
-```bash
-# 示例——使用项目适当的命令
-npm test
-cargo test
-pytest
-go test ./...
-```
-
-**如果测试失败：** 报告失败，询问是否继续或调查。
-
-**如果测试通过：** 报告准备就绪。
-
-### 5. 报告位置
-
-```
-Worktree 已在 <full-path> 准备好
-测试通过（N 个测试，0 个失败）
-准备好实现 <feature-name>
-```
-
-## 快速参考
-
-| 情况 | 操作 |
+| 分支 | 定位 |
 |------|------|
-| `.worktrees/` 存在 | 使用它（验证已忽略） |
-| `worktrees/` 存在 | 使用它（验证已忽略） |
-| 两者都存在 | 使用 `.worktrees/` |
-| 都不存在 | 检查 CLAUDE.md → 询问用户 |
-| 目录未忽略 | 添加到 .gitignore + 提交 |
-| 基准测试失败 | 报告失败 + 询问 |
-| 没有 package.json/Cargo.toml | 跳过依赖安装 |
+| **目标分支** | 承载日常开发；在「提交修改并合并」下通过 fixup 将最新一次提交并入上一提交，便于查看 **整体变更**。 |
+| **备份分支** | 名称固定为 `{目标分支名}_backup`，为 **目标分支上每一次提交的逐次 cherry-pick 镜像**（颗粒度与每次「提交」一致），便于查看 **每次修改的细节**。 |
 
-## 常见错误
+### 工作流分工
 
-### 跳过忽略验证
+用户自行判断：
 
-- **问题：** Worktree 内容被跟踪，污染 git 状态
-- **修复：** 在创建项目本地 worktree 之前始终使用 `git check-ignore`
+- **第一次提交**、**重要节点 / 里程碑**：使用 **「提交修改」**（不在本流程内对目标分支做 fixup）。
+- **其它迭代**：使用 **「提交修改并合并」**（在完成与「提交修改」相同的前半段后，将本轮产生的提交 **仅 fixup 至上一个 commit**）。
 
-### 假设目录位置
+---
 
-- **问题：** 创建不一致，违反项目惯例
-- **修复：** 遵循优先级：现有 > CLAUDE.md > 询问
+## 指令 1：提交修改
 
-### 在测试失败时继续
+在已修改工作区的前提下，按顺序执行以下步骤：
 
-- **问题：** 无法区分新 bug 和预先存在的问题
-- **修复：** 报告失败，获得明确许可后继续
+### 步骤 1：检出目标分支
 
-### 硬编码设置命令
+- 若用户 **明确指定** 分支名（如 `my_branch`），则该分支为 **目标分支**。
+- 若 **未指定**，则目标分支为 **仓库当前检出分支**（`HEAD` 所在分支）。
+- 若当前不在该分支，则切换过去；有未提交变更时按常规则先处理冲突或 stash。
 
-- **问题：** 在使用不同工具的项目上失败
-- **修复：** 从项目文件自动检测（package.json 等）
+### 步骤 2：提交当前变更
 
-## 示例工作流
+提交当前工作区的修改，得到本次提交 **`commit_a`**（记录其 SHA，供后续 cherry-pick 使用）。
 
-```
-你：我正在使用 using-git-worktrees 技能来设置隔离的工作空间。
+### 步骤 3：更新备份分支 `TARGET_backup`
 
-[检查 .worktrees/ - 存在]
-[验证已忽略 - git check-ignore 确认 .worktrees/ 已忽略]
-[创建 worktree：git worktree add .worktrees/auth -b feature/auth]
-[运行 npm install]
-[运行 npm test - 47 个通过]
+**若备份分支不存在：**
+- **创建** `TARGET_backup`，使其 **指向当前 `TARGET` 的 HEAD**（与刚包含 `commit_a` 的状态一致）。
+- **不要**对本次 `commit_a` 再执行一次 cherry-pick（避免重复或空提交）。
 
-Worktree 已在 /Users/jesse/myproject/.worktrees/auth 准备好
-测试通过（47 个测试，0 个失败）
-准备好实现 auth 功能
-```
+**若备份分支已存在：**
+- 在 `TARGET_backup` 上 **cherry-pick `commit_a`**。
 
-## 红旗
+### 步骤 4：处理 Cherry-pick 冲突
 
-**绝不：**
-- 在没有验证已忽略的情况下创建 worktree（项目本地）
-- 跳过基准测试验证
-- 在没有询问的情况下在测试失败时继续
-- 在模糊时假设目录位置
-- 跳过 CLAUDE.md 检查
+**若 cherry-pick 发生冲突：**
+- **不得**擅自用某种合并策略吞掉冲突完成 cherry-pick。
+- **必须询问用户**：是否 **放弃当前备份分支上的解决尝试，直接用目标分支覆盖备份分支**（语义上等价于将 `TARGET_backup` **重置为与 `TARGET` 一致**）。
+- 若用户拒绝覆盖：应中止或交由用户手动解决冲突。
 
-**始终：**
-- 遵循目录优先级：现有 > CLAUDE.md > 询问
-- 验证目录对于项目本地已被忽略
-- 自动检测并运行项目设置
-- 验证干净的测试基准
+### 完成
 
-## 集成
+本指令执行完毕后：不对 `TARGET` 做 fixup / rebase 改写历史。
 
-**由以下调用：**
-- **brainstorming**（第 4 阶段）- 设计批准且实现随之进行时必需
-- **subagent-driven-development** - 在执行任何任务之前必需
-- **executing-plans** - 在执行任何任务之前必需
-- 任何需要隔离工作空间的技能
+---
 
-**配合：**
-- **finishing-a-development-branch** - 工作完成后清理所必需
+## 指令 2：提交修改并合并
+
+### 步骤 1-3：执行「提交修改」的全部步骤
+
+完整执行「提交修改」的全部步骤（得到 `commit_a`，并完成备份分支的创建或 cherry-pick）。
+
+### 步骤 4：Fixup 到上一个提交
+
+在 `TARGET` 上，将 **`commit_a` 仅 fixup 到「上一个 commit」**（即与 `commit_a` 的父提交合并为一，保持「只压一层」）：
+
+- 实现方式可选用：`git commit --fixup` + `git rebase -i --autosquash`，或等价的「将最后一次提交并入 `HEAD~1`」操作。
+
+### 前置条件检查
+
+执行前应检查：
+
+- `TARGET` 上在 `commit_a` 之外，**至少存在一个可作为「上一 commit」的父提交**（首次开发若已按约定用「提交修改」打底，通常满足）。
+- 若当前历史不足以 fixup：**不得强行 fixup**；应向用户说明，并建议先使用「提交修改」或调整分支历史。
+
+### 完成
+
+Fixup 之后：
+- `TARGET` 上 `commit_a` 的独立 SHA 不再保留
+- **备份分支**上应仍保留已 cherry-pick 的 `commit_a` 对象，以维持「逐次细节」镜像
+
+---
+
+## 禁止项：远端推送
+
+- **禁止**助手、脚本或本工作流中的任何步骤执行 `git push`、`git push --force`、`git push --force-with-lease` 等 **一切向远端写入** 的操作。
+- 是否需要推送、推送到哪个 remote、是否允许改写远端历史，**一律由用户在本地手动决定并执行**。
+
+---
+
+## 用户手动推送时的提示
+
+当用户自行推送 **已做过 fixup 的 `TARGET`** 时：
+
+- 若该分支曾在远端存在线性祖先之外的提交，可能需要 **`--force-with-lease`**（或遵守团队分支保护策略）。
+- 这不属于本规则的自动化范围，仅作为文档提醒。
+
+---
+
+## 检查清单
+
+| 检查项 | 要求 |
+|--------|------|
+| 备份分支命名 | `{目标分支名}_backup` |
+| 首次创建备份 | 指向 `TARGET` 当前 HEAD，**不**对本轮提交重复 cherry-pick |
+| 后续更新备份 | cherry-pick 本轮 `commit_a` |
+| Cherry-pick 冲突 | 询问是否用 `TARGET` 覆盖 `TARGET_backup`，禁止默认可选 `--ours`/`--theirs` 完成且无确认 |
+| 合并类指令 | 在「提交修改」之后 **仅 fixup 到上一 commit** |
+| 远端 | **禁止**助手/规则内自动 push，**必须**用户手动 |
+
+---
+
+## 版本历史
+
+- **1.0** (2026-03-28): 整合 worktree 隔离开发和本地提交与备份分支工作流规则

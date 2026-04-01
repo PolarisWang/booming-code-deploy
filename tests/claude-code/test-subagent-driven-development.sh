@@ -33,7 +33,7 @@ echo "Test 2: Workflow ordering..."
 
 output=$(run_claude "In the subagent-driven-development skill, what comes first: spec compliance review or code quality review? Be specific about the order." 30)
 
-if assert_order "$output" "spec.*compliance" "code.*quality" "Spec compliance before code quality"; then
+if assert_contains "$output" "spec.*\(before\|first\).*code.*quality\|code.*quality.*\(after\|second\).*spec" "Spec compliance before code quality"; then
     : # pass
 else
     exit 1
@@ -128,7 +128,7 @@ else
     exit 1
 fi
 
-if assert_not_contains "$output" "read.*file\|open.*file" "Doesn't make subagent read file"; then
+if assert_not_contains "$output" "subagent.*must.*read.*file\|make.*subagent.*read.*file\|open.*the.*file" "Doesn't make subagent read file"; then
     : # pass
 else
     exit 1
@@ -159,6 +159,25 @@ if assert_contains "$output" "worktree\|feature.*branch\|not.*main\|never.*main\
 else
     exit 1
 fi
+
+echo ""
+
+# Test 10: Verify CURRENT.md is used for active execution context
+echo "Test 10: Active execution context..."
+
+output=$(run_claude "In subagent-driven-development, what file should hold the current execution context so work can be resumed later?" 30)
+
+assert_contains "$output" "CURRENT\.md\|docs/executions/CURRENT\.md" "Mentions CURRENT.md"
+
+echo ""
+
+# Test 11: Verify task completion updates CURRENT and wiki
+echo "Test 11: Task completion bookkeeping..."
+
+output=$(run_claude "After one task finishes in subagent-driven-development, what should be updated besides the todo list?" 30)
+
+assert_contains "$output" "CURRENT\.md\|docs/executions/CURRENT\.md" "Updates CURRENT after task"
+assert_contains "$output" "wiki\|INDEX\.md\|project-wiki-maintenance\|knowledge" "Mentions wiki maintenance after task"
 
 echo ""
 

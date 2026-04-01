@@ -42,7 +42,7 @@ fi
 
 # Test 4: Check using-booming skill exists (critical for bootstrap)
 echo "Test 4: Checking using-booming skill (required for bootstrap)..."
-if [ -f "$HOME/.config/opencode/superpowers/skills/booming-code-using-booming/SKILL.md" ]; then
+if [ -f "$HOME/.config/opencode/superpowers/skills/dev-using-booming/SKILL.md" ]; then
     echo "  [PASS] using-booming skill exists"
 else
     echo "  [FAIL] using-booming skill not found (required for bootstrap)"

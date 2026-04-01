@@ -16,7 +16,7 @@ const crypto = require('crypto');
 const path = require('path');
 
 // The module under test — will be the new zero-dep server file
-const SERVER_PATH = path.join(__dirname, '../../skills/booming-code-brainstorm/scripts/server.js');
+const SERVER_PATH = path.join(__dirname, '../../skills/dev-brainstorm/scripts/server.js');
 let ws;
 
 try {

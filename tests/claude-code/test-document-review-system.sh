@@ -78,7 +78,7 @@ OUTPUT_FILE="$TEST_PROJECT/claude-output.txt"
 
 PROMPT="You are testing the spec document reviewer.
 
-Read the spec-document-reviewer-prompt.md template in skills/booming-code-brainstorm/ to understand the review format.
+Read the spec-document-reviewer-prompt.md template in skills/dev-brainstorm/ to understand the review format.
 
 Then review the spec at $TEST_PROJECT/docs/superpowers/specs/test-feature-design.md using the criteria from that template.
 

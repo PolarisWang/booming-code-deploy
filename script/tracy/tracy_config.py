@@ -8,7 +8,7 @@ Usage:
     python tracy_config.py validate <path>            # 验证可执行文件是否存在
     python tracy_config.py launch <trace_file>        # 用配置的路径启动 Tracy 并打开 trace 文件
 
-配置文件位置：.booming/settings/booming-analysis-tracy.json（相对于当前工作目录）
+配置文件位置：.booming/settings/profile-tracy.json（相对于当前工作目录）
 """
 
 import json
@@ -17,7 +17,7 @@ import pathlib
 import subprocess
 import sys
 
-CONFIG_REL_PATH = pathlib.Path(".booming") / "settings" / "booming-analysis-tracy.json"
+CONFIG_REL_PATH = pathlib.Path(".booming") / "settings" / "profile-tracy.json"
 
 
 def _config_path() -> pathlib.Path:

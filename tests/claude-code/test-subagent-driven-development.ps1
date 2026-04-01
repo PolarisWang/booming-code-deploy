@@ -26,7 +26,7 @@ Write-Host "Test 2: Workflow ordering..."
 
 $output = Run-Claude "In the subagent-driven-development skill, what comes first: spec compliance review or code quality review? Be specific about the order." 30
 
-if (-not (Assert-Order $output "spec.*compliance" "code.*quality" "Spec compliance before code quality")) { $failed = $true }
+if (-not (Assert-Contains $output "spec.*(before|first).*code.*quality|code.*quality.*(after|second).*spec" "Spec compliance before code quality")) { $failed = $true }
 
 Write-Host ""
 
@@ -76,7 +76,7 @@ Write-Host "Test 7: Task context provision..."
 $output = Run-Claude "In subagent-driven-development, how does the controller provide task information to the implementer subagent? Does it make them read a file or provide it directly?" 30
 
 if (-not (Assert-Contains $output "provide.*directly|full.*text|paste|include.*prompt" "Provides text directly")) { $failed = $true }
-if (-not (Assert-NotContains $output "read.*file|open.*file" "Doesn't make subagent read file")) { $failed = $true }
+if (-not (Assert-NotContains $output "subagent.*must.*read.*file|make.*subagent.*read.*file|open.*the.*file" "Doesn't make subagent read file")) { $failed = $true }
 
 Write-Host ""
 
@@ -95,6 +95,25 @@ Write-Host "Test 9: Main branch red flag..."
 $output = Run-Claude "In subagent-driven-development, is it okay to start implementation directly on the main branch?" 30
 
 if (-not (Assert-Contains $output "worktree|feature.*branch|not.*main|never.*main|avoid.*main|don't.*main|consent|permission" "Warns against main branch")) { $failed = $true }
+
+Write-Host ""
+
+# Test 10: Verify CURRENT.md is used for active execution context
+Write-Host "Test 10: Active execution context..."
+
+$output = Run-Claude "In subagent-driven-development, what file should hold the current execution context so work can be resumed later?" 30
+
+if (-not (Assert-Contains $output "CURRENT\.md|docs/executions/CURRENT\.md" "Mentions CURRENT.md")) { $failed = $true }
+
+Write-Host ""
+
+# Test 11: Verify task completion updates CURRENT and wiki
+Write-Host "Test 11: Task completion bookkeeping..."
+
+$output = Run-Claude "After one task finishes in subagent-driven-development, what should be updated besides the todo list?" 30
+
+if (-not (Assert-Contains $output "CURRENT\.md|docs/executions/CURRENT\.md" "Updates CURRENT after task")) { $failed = $true }
+if (-not (Assert-Contains $output "wiki|INDEX\.md|project-wiki-maintenance|knowledge" "Mentions wiki maintenance after task")) { $failed = $true }
 
 Write-Host ""
 

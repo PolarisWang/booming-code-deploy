@@ -57,6 +57,9 @@ while [[ $# -gt 0 ]]; do
             echo "  --help, -h           Show this help"
             echo ""
             echo "Tests:"
+            echo "  test-active-execution-guard-clean.sh      Test active plan guard behavior"
+            echo "  test-project-wiki-maintenance-clean.sh    Test project wiki maintenance rules"
+            echo "  test-executing-plans-clean.sh             Test execution context and archive rules"
             echo "  test-subagent-driven-development.sh  Test skill loading and requirements"
             echo ""
             echo "Integration Tests (use --integration):"
@@ -73,6 +76,9 @@ done
 
 # List of skill tests to run (fast unit tests)
 tests=(
+    "test-active-execution-guard-clean.sh"
+    "test-project-wiki-maintenance-clean.sh"
+    "test-executing-plans-clean.sh"
     "test-subagent-driven-development.sh"
 )
 

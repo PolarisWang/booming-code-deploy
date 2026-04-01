@@ -15,7 +15,7 @@ if [ -d "$legacy_skills_dir" ]; then
 fi
 
 # Read using-booming content
-using_superpowers_content=$(cat "${PLUGIN_ROOT}/skills/booming-code-using-booming/SKILL.md" 2>&1 || echo "Error reading using-booming skill")
+using_superpowers_content=$(cat "${PLUGIN_ROOT}/skills/dev-using-booming/SKILL.md" 2>&1 || echo "Error reading using-booming skill")
 
 # Escape string for JSON embedding using bash parameter substitution.
 # Each ${s//old/new} is a single C-level pass - orders of magnitude

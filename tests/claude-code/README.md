@@ -6,10 +6,13 @@ Automated tests for booming skills using Claude Code CLI.
 
 This test suite verifies that skills are loaded correctly and Claude follows them as expected. Tests invoke Claude Code in headless mode (`claude -p`) and verify the behavior.
 
+Fast tests inject the repository-local `.codex/skills` documents as the source of truth so they do not depend on whatever booming plugin version happens to be installed on the machine.
+
 ## Requirements
 
 - Claude Code CLI installed and in PATH (`claude --version` should work)
-- Local booming plugin installed (see main README for installation)
+- Claude Code can run in headless mode from this repository
+- Integration tests still require the local booming plugin installation described in the main README
 
 ## Running Tests
 
@@ -119,6 +122,9 @@ Write-Host "=== All tests passed ==="
 
 #### test-subagent-driven-development.sh / .ps1
 Tests skill content and requirements (~2 minutes):
+- Active plan guard behavior
+- Project wiki maintenance rules
+- Execution context and archive rules
 - Skill loading and accessibility
 - Workflow ordering (spec compliance before code quality)
 - Self-review requirements documented
@@ -140,9 +146,30 @@ Full workflow execution test (~10-30 minutes):
   - Subagents perform self-review before reporting
   - Spec compliance review happens before code quality
   - Spec reviewer reads code independently
-  - Working implementation is produced
-  - Tests pass
-  - Proper git commits created
+- Working implementation is produced
+- Tests pass
+- Proper git commits created
+
+#### test-active-execution-guard-clean.sh / .ps1
+Tests active execution guard rules (~1 minute):
+- Skill loading and accessibility
+- `docs/executions/CURRENT.md` detection semantics
+- Allowed user options (`继续` / `放弃`)
+- Blocking unrelated answers until active plan is handled
+
+#### test-project-wiki-maintenance-clean.sh / .ps1
+Tests project wiki maintenance rules (~1 minute):
+- Skill loading and accessibility
+- `docs` vs `wiki` boundary
+- Required wiki updates for long-lived knowledge
+- `wiki/03-功能模块` vs `wiki/05-项目经验` routing
+
+#### test-executing-plans-clean.sh / .ps1
+Tests enhanced executing-plans rules (~1 minute):
+- Task count confirmation at execution start
+- `docs/executions/CURRENT.md` creation and content expectations
+- Per-task bookkeeping and wiki update expectations
+- Automatic `completed` archive conditions
 
 **What it tests:**
 - The workflow actually works end-to-end
@@ -197,7 +224,8 @@ Without verbose, only failures show output.
 
 ## Notes
 
-- Tests verify skill *instructions*, not full execution
+- Fast tests verify skill *instructions* using the repository-local `.codex/skills` sources, not the machine's installed booming plugin state
+- Integration tests verify full execution against the live Claude environment
 - Full workflow tests would be very slow
 - Focus on verifying key skill requirements
 - Tests should be deterministic

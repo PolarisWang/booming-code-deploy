@@ -2,21 +2,27 @@
   "permissions": {
     "allow": [
       "Bash(grep -E \"\\\\.\\(hpp|cpp|h\\)$\")",
+      "Bash(npx skills:*)",
       "Bash(powershell -NonInteractive -Command \":*)",
       "Bash(powershell -NonInteractive -File run-skill-tests.ps1 --help)",
-      "Read(//c/Users/haochuan.wang/.claude/**)",
-      "Bash(npx skills:*)",
       "Bash(python -c \":*)",
-      "Bash(cmd.exe /c \"start https://boomingtech.feishu.cn/docx/UgLldadeEoj9pcxHYuecJ9ACn5e\")",
-      "Bash(python feishu_write.py --title \"Mars 物理模块总结 v2\" --share tenant \"e:/agent/tracy-cli/docs/physics-module-summary.md\")",
-      "Bash(cmd.exe /c \"start https://boomingtech.feishu.cn/docx/OX3rd6A4poiw5Yx38P8c1zBvnVb\")",
-      "Bash(python feishu_auth.py --help)",
-      "Bash(python feishu_auth.py)",
-      "Bash(python .claude/script/tracy/tracy_http.py filepath)",
-      "Bash(python .claude/script/tracy/tracy_http.py selection)",
-      "Bash(python -c \"import os; print\\(os.path.exists\\(r''E:\\\\cb2\\\\dev\\\\chaos\\\\_source\\\\_engine\\\\source\\\\client\\\\private\\\\chaos\\\\client\\\\game_actor\\\\chaos_client_game_actor_manager.cpp''\\)\\)\")",
-      "Bash(python .claude/script/tracy/find_file.py \"E:\\\\cb2\\\\dev\\\\chaos\\\\_source\\\\_engine\\\\source\\\\client\\\\private\\\\chaos\\\\client\\\\game_actor\\\\chaos_client_game_actor_manager.cpp\")",
-      "Bash(python .claude/script/tracy/find_file.py \"chaos_client_game_actor_manager.cpp\" \"e:\\\\cb2_env2\\\\dev\\\\chaos\\\\\")"
+      "Bash(python feishu_auth.py:*)",
+      "Bash(python feishu_fetch.py:*)",
+      "Bash(python feishu_write.py:*)",
+      "Bash(python .claude/script/tracy/analyze_frames.py:*)",
+      "Bash(python .claude/script/tracy/analyze_memory.py:*)",
+      "Bash(python .claude/script/tracy/analyze_overview.py:*)",
+      "Bash(python .claude/script/tracy/analyze_tags.py:*)",
+      "Bash(python .claude/script/tracy/find_file.py:*)",
+      "Bash(python .claude/script/tracy/tracy_config.py:*)",
+      "Bash(python .claude/script/tracy/tracy_http.py:*)",
+      "Bash(python .codex/script/tracy/analyze_frames.py:*)",
+      "Bash(python .codex/script/tracy/analyze_memory.py:*)",
+      "Bash(python .codex/script/tracy/analyze_overview.py:*)",
+      "Bash(python .codex/script/tracy/analyze_tags.py:*)",
+      "Bash(python .codex/script/tracy/find_file.py:*)",
+      "Bash(python .codex/script/tracy/tracy_config.py:*)",
+      "Bash(python .codex/script/tracy/tracy_http.py:*)"
     ]
   }
 }

@@ -153,9 +153,9 @@ Full workflow execution test (~10-30 minutes):
 #### test-active-execution-guard-clean.sh / .ps1
 Tests active execution guard rules (~1 minute):
 - Skill loading and accessibility
-- `docs/executions/CURRENT.md` detection semantics
-- Allowed user options (`继续` / `放弃`)
-- Blocking unrelated answers until active plan is handled
+- `docs/dev/ACTIVE.md` detection semantics
+- Allowed user options (`继续` / `挂起` / `放弃`)
+- Blocking unrelated answers until the active task is handled
 
 #### test-project-wiki-maintenance-clean.sh / .ps1
 Tests project wiki maintenance rules (~1 minute):
@@ -167,9 +167,16 @@ Tests project wiki maintenance rules (~1 minute):
 #### test-executing-plans-clean.sh / .ps1
 Tests enhanced executing-plans rules (~1 minute):
 - Task count confirmation at execution start
-- `docs/executions/CURRENT.md` creation and content expectations
-- Per-task bookkeeping and wiki update expectations
-- Automatic `completed` archive conditions
+- `STATUS.md` / `docs/dev/ACTIVE.md` creation and content expectations
+- Per-task bookkeeping, progress note, index, and wiki update expectations
+- Automatic move to `docs/dev/completed/` conditions
+
+#### test-roadmap-clean.sh / .ps1
+Tests roadmap routing rules (~1 minute):
+- Roadmap skill loading and accessibility
+- brainstorm 之后何时进入 roadmap
+- roadmap 文档保存到当前任务目录
+- roadmap 作为父任务，子任务独立目录执行
 
 **What it tests:**
 - The workflow actually works end-to-end

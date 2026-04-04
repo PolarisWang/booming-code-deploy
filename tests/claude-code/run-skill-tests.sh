@@ -57,10 +57,11 @@ while [[ $# -gt 0 ]]; do
             echo "  --help, -h           Show this help"
             echo ""
             echo "Tests:"
-            echo "  test-active-execution-guard-clean.sh      Test active plan guard behavior"
+            echo "  test-active-execution-guard-clean.sh      Test active task guard behavior"
             echo "  test-project-wiki-maintenance-clean.sh    Test project wiki maintenance rules"
             echo "  test-executing-plans-clean.sh             Test execution context and archive rules"
-            echo "  test-subagent-driven-development.sh  Test skill loading and requirements"
+            echo "  test-subagent-driven-development.sh       Test skill loading and requirements"
+            echo "  test-roadmap-clean.sh                     Test roadmap routing and parent-task rules"
             echo ""
             echo "Integration Tests (use --integration):"
             echo "  test-subagent-driven-development-integration.sh  Full workflow execution"
@@ -80,6 +81,7 @@ tests=(
     "test-project-wiki-maintenance-clean.sh"
     "test-executing-plans-clean.sh"
     "test-subagent-driven-development.sh"
+    "test-roadmap-clean.sh"
 )
 
 # Integration tests (slow, full execution)

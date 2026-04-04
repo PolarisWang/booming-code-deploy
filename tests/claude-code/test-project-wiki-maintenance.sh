@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Test: project-wiki-maintenance skill
-# Verifies project wiki knowledge handling and docs/wiki separation.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -18,7 +16,7 @@ echo ""
 
 echo "Test 2: docs/wiki separation..."
 output=$(run_claude "In project-wiki-maintenance, should execution logs and chat transcripts be written into wiki or kept elsewhere?" 30)
-assert_contains "$output" "docs\|executions\|kept.*elsewhere\|not.*wiki\|不写.*wiki" "Separates docs from wiki"
+assert_contains "$output" "docs/dev\|kept.*elsewhere\|not.*wiki\|不写.*wiki" "Separates docs from wiki"
 
 echo ""
 
@@ -33,6 +31,12 @@ echo "Test 4: Module knowledge vs project experience..."
 output=$(run_claude "How does project-wiki-maintenance decide between wiki/03-功能模块 and wiki/05-项目经验?" 30)
 assert_contains "$output" "功能\|module\|功能模块" "Mentions module knowledge"
 assert_contains "$output" "经验\|experience\|跨功能\|cross-functional" "Mentions project experience"
+
+echo ""
+
+echo "Test 5: No-wiki-update record stays in task docs..."
+output=$(run_claude "If a task produces no lasting knowledge, where should project-wiki-maintenance record that fact?" 30)
+assert_contains "$output" "STATUS\.md\|progress" "Records no-wiki-update in task docs"
 
 echo ""
 echo "=== All project-wiki-maintenance skill tests passed ==="

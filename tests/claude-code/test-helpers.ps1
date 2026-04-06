@@ -9,7 +9,6 @@ function Get-SkillDocPaths {
 
     $repoRoot = Get-RepoRoot
     $skillMap = [ordered]@{
-        "active-execution-guard"      = @(".codex\skills\dev-active-execution-guard\SKILL.md")
         "project-wiki-maintenance"    = @(".codex\skills\dev-project-wiki-maintenance\SKILL.md")
         "executing-plans"             = @(".codex\skills\dev-executing-plans\SKILL.md")
         "subagent-driven-development" = @(".codex\skills\dev-subagent-driven-development\SKILL.md")
@@ -33,15 +32,6 @@ function Get-SkillContractSummary {
     param([string]$Prompt)
 
     $contracts = [ordered]@{
-        "active-execution-guard" = @(
-            "- `docs/dev/ACTIVE.md` present means there is an active task."
-            "- The guard must block unrelated complex flows until the active task is handled."
-            "- The user may choose only `continue`, `hang`, or `abandon`."
-            "- `hang` means suspend the current task, save progress, and then continue the user's new request."
-            "- `abandon` means mark the current task abandoned and then continue the user's new request."
-            "- The guard must not offer `complete`."
-            "- Even an incomplete `ACTIVE.md` is still treated as active."
-        )
         "project-wiki-maintenance" = @(
             "- `wiki/` stores long-term project knowledge."
             "- Execution logs and chat transcripts stay in `docs/dev/<lifecycle>/<task_id>/`, not in `wiki/`."
@@ -54,9 +44,16 @@ function Get-SkillContractSummary {
             "- At the start, count the total number of tasks in the plan."
             "- Create or update the task `STATUS.md` and `docs/dev/ACTIVE.md` before execution continues."
             "- The task directory is the execution truth source; `ACTIVE.md` is only the active pointer."
+            "- If `docs/dev/ACTIVE.md` points to a different task, `executing-plans` must block the new complex flow and offer only `continue`, `hang`, or `abandon`."
+            "- If `ACTIVE.md` points to the same task, treat it as resume and continue without asking."
+            "- Even an incomplete `ACTIVE.md` is still treated as active and cannot be ignored."
+            "- `hang` means suspend the current task, save progress, move it to `docs/dev/hanging/`, and then continue the user's new request."
+            "- `abandon` means mark the current task abandoned, move it to `docs/dev/abandoned/`, and then continue the user's new request."
+            "- The skill must not offer `complete` as a user option."
             "- After each task, update `STATUS.md`, `ACTIVE.md`, task progress notes, and the relevant `INDEX.md` files."
             "- Then either update `wiki/` and the relevant `INDEX.md` through `project-wiki-maintenance`, or record `no wiki update`."
-            "- A run may move the task directory to `docs/dev/completed/` only when all tasks are done, required validation or tests pass, and required wiki knowledge has been written."
+            "- After all tasks are done, run the project test suite before archiving or handing off to branch-finishing."
+            "- A run may move the task directory to `docs/dev/completed/` only when all tasks are done, the project test suite passes, other required validation passes, and required wiki knowledge has been written."
         )
         "subagent-driven-development" = @(
             "- Step 1 is `Load Plan`: the controller reads the plan once at the beginning and extracts all tasks."

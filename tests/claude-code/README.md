@@ -122,7 +122,6 @@ Write-Host "=== All tests passed ==="
 
 #### test-subagent-driven-development.sh / .ps1
 Tests skill content and requirements (~2 minutes):
-- Active plan guard behavior
 - Project wiki maintenance rules
 - Execution context and archive rules
 - Skill loading and accessibility
@@ -150,13 +149,6 @@ Full workflow execution test (~10-30 minutes):
 - Tests pass
 - Proper git commits created
 
-#### test-active-execution-guard-clean.sh / .ps1
-Tests active execution guard rules (~1 minute):
-- Skill loading and accessibility
-- `docs/dev/ACTIVE.md` detection semantics
-- Allowed user options (`继续` / `挂起` / `放弃`)
-- Blocking unrelated answers until the active task is handled
-
 #### test-project-wiki-maintenance-clean.sh / .ps1
 Tests project wiki maintenance rules (~1 minute):
 - Skill loading and accessibility
@@ -167,6 +159,8 @@ Tests project wiki maintenance rules (~1 minute):
 #### test-executing-plans-clean.sh / .ps1
 Tests enhanced executing-plans rules (~1 minute):
 - Task count confirmation at execution start
+- Active task conflict handling (`继续` / `挂起` / `放弃`)
+- Same-task resume and incomplete `ACTIVE.md` handling
 - `STATUS.md` / `docs/dev/ACTIVE.md` creation and content expectations
 - Per-task bookkeeping, progress note, index, and wiki update expectations
 - Automatic move to `docs/dev/completed/` conditions

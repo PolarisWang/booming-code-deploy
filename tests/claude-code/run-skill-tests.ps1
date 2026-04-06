@@ -47,7 +47,6 @@ for ($i = 0; $i -lt $args.Count; $i++) {
             Write-Host "  --help, -h           Show this help"
             Write-Host ""
             Write-Host "Tests:"
-            Write-Host "  test-active-execution-guard-clean.ps1      Test active task guard behavior"
             Write-Host "  test-project-wiki-maintenance-clean.ps1    Test project wiki maintenance rules"
             Write-Host "  test-executing-plans-clean.ps1             Test execution context and archive rules"
             Write-Host "  test-subagent-driven-development.ps1       Test skill loading and requirements"
@@ -67,7 +66,6 @@ for ($i = 0; $i -lt $args.Count; $i++) {
 
 # List of skill tests to run (fast unit tests)
 $tests = @(
-    "test-active-execution-guard-clean.ps1"
     "test-project-wiki-maintenance-clean.ps1"
     "test-executing-plans-clean.ps1"
     "test-subagent-driven-development.ps1"
